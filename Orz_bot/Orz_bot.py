@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import asyncio
 
-prefix = '='
+prefix = ';'
 version = '1.0.0'
 
 client = discord.Client()
@@ -66,15 +66,16 @@ async def send_to_gallery():
         print('Processing', len(messages), 'messages')
         for msg in messages:
             cnt = 0
-            for reaction in msg.reactions:
+            updated_message = await msg.channel.fetch_message(msg.id)
+            for reaction in updated_message.reactions:
                 if reaction == gallery:
                     cnt += 1
 
             if cnt > 1:
-                channel.send(msg)
+                await channel.send(msg)
         print('Messages sent')
         messages.clear()
         await asyncio.sleep(60) # task runs every 60 seconds
 
-client.run('NzkxMzQwNzMwOTA3ODg1NjA4.X-NvfA.rsLYWSO4K752BD0nv2T6se-eP0A')
+client.run('insert top secret token here')
 

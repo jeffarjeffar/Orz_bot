@@ -67,15 +67,20 @@ async def send_to_gallery():
         for msg in messages:
             cnt = 0
             updated_message = await msg.channel.fetch_message(msg.id)
+            print('Found message', updated_message)
             for reaction in updated_message.reactions:
-                if reaction == gallery:
-                    cnt += 1
+                print('Found reaction', reaction, ', count = ', reaction.count)
+                print(str(reaction.emoji))
+                if str(reaction.emoji) == '<:gallery:791402385436180500>':
+                    print('Found stars')
+                    cnt = reaction.count
 
+            print(cnt, 'people starred')
             if cnt > 1:
-                await channel.send(msg)
+                await channel.send(msg.content)
         print('Messages sent')
         messages.clear()
         await asyncio.sleep(60) # task runs every 60 seconds
 
-client.run('insert top secret token here')
+client.run('insert super secret orz token here')
 

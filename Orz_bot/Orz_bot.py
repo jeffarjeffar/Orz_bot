@@ -74,7 +74,24 @@ async def on_message(message):
             person_user = client.get_user(user_id) # person, but with type User
             #print(person)
             await mute(person, int(command[2]), message.guild, person_user.mention, message.channel)
+        if command[0] == 'unmute':
+            if not is_admin(str(message.author)):
+                await message.channel.send('You do not have permission to mute this user')
+                return
+            if len(command) != 2:
+                await message.channel.send('Incorrect number of arguments given')
+                return
 
+            user_id = int(command[1][3:-1])
+            person = await message.guild.fetch_member(user_id)
+            person_user = client.get_user(user_id) # person, but with type User
+            await unmute(person, person_user.mention, message.channel)
+        if command[0] == 'help':
+            embed=discord.Embed(title="Help")
+            embed.add_field(name="Commands", value='"mute [@user] [time]": mutes user for [time] seconds\n"Unmute [@user]": unmutes user', inline=False)
+            embed.add_field(name="Help", value= '"help": Shows this message', inline=False)
+            embed.add_field(name="Misc", value='"ping": Sends "Pong!"', inline=False)
+            await message.channel.send(embed=embed)
 
 async def mute(person, time, server, mention, channel):
     mute_msg = mention + ' has been muted for ' + str(time) + ' seconds'
@@ -83,13 +100,27 @@ async def mute(person, time, server, mention, channel):
     for r in server.roles:
         #print('Found role', r.name)
         if r.name == 'Muted':
-            await person.add_roles(r)
-            await channel.send(mute_msg)
-            await asyncio.sleep(time)
+            if not r in person.roles:
+                await person.add_roles(r)
+                await channel.send(mute_msg)
+                await asyncio.sleep(time)
+            else:
+                await channel.send(mention + ' is already muted')
+                return
+            if r in person.roles:
+                await person.remove_roles(r)
+                await channel.send(unmute_msg)
+            return
+    await channel.send(error_msg)
+
+async def unmute(person, mention, channel):
+    unmute_msg = mention + ' has been unmuted'
+    for r in person.roles:
+        if r.name == 'Muted':
             await person.remove_roles(r)
             await channel.send(unmute_msg)
             return
-    await channel.send(error_msg)
+    await channel.send(mention + ' was not muted')
 
 async def send_to_gallery():
     #print('Watching for stars')
@@ -125,5 +156,5 @@ async def send_to_gallery():
         #print('Messages sent')
         messages.clear()
         await asyncio.sleep(120) # task runs every x seconds
-client.run('')
+client.run(' ')
 

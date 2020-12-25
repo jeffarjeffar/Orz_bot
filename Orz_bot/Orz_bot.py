@@ -15,10 +15,31 @@ def is_admin(person):
         if (admins[i] == person):
             return True
     return False
-    
+
+perms = {}
+
+def pull_perms():
+    F = open('perms.txt')
+    f_perms = F.readlines()
+
+    for p in f_perms:
+        p2 = p.split('-----')
+        perms[int(p2[0])] = int(p2[1])
+
+def push_perms():
+    F = open('perms.txt', 'w')
+    for k in perms.keys():
+        F.write(f'{k}-----{perms[k]}\n')
+
+def getperm(id):
+    if id in perms.keys():
+        return perms[id]
+    perms[id] = 0
+    return 0
 
 @client.event
 async def on_ready():
+    pull_perms()
     print('Bot is ready.')
     await client.change_presence(activity=discord.Game(name='Tmw orz'))
     await send_to_gallery()
@@ -30,9 +51,8 @@ messages = []
 async def on_message(message):
     messages.append(message)
 
-    #gallery = client.get_emoji(791402385436180500)
-    #await message.add_reaction(gallery)
-    #print('read message', message.content)
+    if str(message.channel) == 'welcome' and message.content == '':
+        await welcome()
 
     if message.author == client.user:
         return
@@ -58,93 +78,103 @@ async def on_message(message):
         if command[0] == 'ping':
             await message.channel.send('Pong!')
         if command[0] == 'mute':
-            #print(message.author)
-            if not is_admin(str(message.author)):
-                await message.channel.send('You do not have permission to mute this user')
-                return
-
             if len(command) != 3:
                 await message.channel.send('Incorrect number of arguments given')
                 return
             
             user_id = int(command[1][3:-1])
-            #print(user_id)
-            #print(message.guild)
-            person = await message.guild.fetch_member(user_id)
-            person_user = client.get_user(user_id) # person, but with type User
-            #print(person)
-            await mute(person, int(command[2]), message.guild, person_user.mention, message.channel)
+
+            if getperm(user_id) >= getperm(message.author.id) and message.author.id != user_id:
+                await message.channel.send('You do not have permission to mute this user')
+                return
+
+            await mute(user_id, int(command[2]), message.guild, message.channel)
         if command[0] == 'unmute':
             if not is_admin(str(message.author)):
-                await message.channel.send('You do not have permission to mute this user')
+                await message.channel.send('You do not have permission to unmute this user')
                 return
             if len(command) != 2:
                 await message.channel.send('Incorrect number of arguments given')
                 return
 
             user_id = int(command[1][3:-1])
-            person = await message.guild.fetch_member(user_id)
-            person_user = client.get_user(user_id) # person, but with type User
-            await unmute(person, person_user.mention, message.channel)
+
+            await unmute(user_id, message.guild, message.channel)
         if command[0] == 'help':
-            embed=discord.Embed(title="Help")
-            embed.add_field(name="Commands", value='"mute [@user] [time]": mutes user for [time] seconds\n"Unmute [@user]": unmutes user', inline=False)
+            embed = discord.Embed(title="Help")
+            embed.add_field(name="Commands", value='"mute [@user] [time]": mutes user for [time] seconds\n' + '"unmute [@user]": unmutes user\n' + '"setperms [@user] [permission]": Changes the permissions integer for a user\n' + '"viewperms": lists users and their permissions integers', inline=False)
             embed.add_field(name="Help", value= '"help": Shows this message', inline=False)
             embed.add_field(name="Misc", value='"ping": Sends "Pong!"', inline=False)
+            embed.add_field(name="Gallery", value='React with :gallery: to send a message to the gallery. It will be sent to the gallery if there are at least 2 reactions'
+                            , inline=False)
             await message.channel.send(embed=embed)
+        if command[0] == 'setperms':
+            if not is_admin(str(message.author)):
+                await message.channel.send('You do not have permission to change perms')
+                return
+            
+            user_id = int(command[1][3:-1])
+            perms[user_id] = int(command[2])
+            push_perms()
+            await message.channel.send('Permissions successfully updated')
+        if command[0] == 'viewperms':
+            res = ''
+            for k in perms.keys():
+                res += f'<@{k}>: {perms[k]}\n'
+            await message.channel.send(res)
 
-async def mute(person, time, server, mention, channel):
-    mute_msg = mention + ' has been muted for ' + str(time) + ' seconds'
-    unmute_msg = mention + ' has been unmuted'
-    error_msg = 'Unable to mute ' + mention
+async def mute(id, time, server, channel):
+    person = await server.fetch_member(id)
+    mute_msg = f'{person.mention} has been muted for {time} seconds'
+    unmute_msg = f'{person.mention} has been unmuted'
+    error_msg = f'Unable to mute {person.mention}'
     for r in server.roles:
-        #print('Found role', r.name)
         if r.name == 'Muted':
             if not r in person.roles:
                 await person.add_roles(r)
                 await channel.send(mute_msg)
                 await asyncio.sleep(time)
             else:
-                await channel.send(mention + ' is already muted')
+                await channel.send(f'{person.mention} is already muted')
                 return
-            if r in person.roles:
-                await person.remove_roles(r)
+            updated_person = await server.fetch_member(id)
+            if r in updated_person.roles:
+                await updated_person.remove_roles(r)
                 await channel.send(unmute_msg)
+            else:
+                await channel.send(f'{time} seconds is up, but {person.mention} is already unmuted')
             return
     await channel.send(error_msg)
 
-async def unmute(person, mention, channel):
-    unmute_msg = mention + ' has been unmuted'
+async def unmute(id, server, channel):
+    person = await server.fetch_member(id)
+    unmute_msg = f'{person.mention} has been unmuted'
     for r in person.roles:
         if r.name == 'Muted':
             await person.remove_roles(r)
             await channel.send(unmute_msg)
             return
-    await channel.send(mention + ' was not muted')
+    await channel.send(f'{person.mention} was not muted')
+
+async def cow_worship():
+    worship_channel = client.get_channel(791885828338352191)
+    while True:
+        await worship_channel.send(':pray: :cow:')
+        await asyncio.sleep(696)
 
 async def send_to_gallery():
-    #print('Watching for stars')
-
     gallery = client.get_emoji(791402385436180500)
 
-    channel = client.get_channel(791367434166468638) # channel ID goes here
+    channel = client.get_channel(791367434166468638)
     while True:
-        #print('Processing', len(messages), 'messages')
         for msg in messages:
             cnt = 0
             updated_message = await msg.channel.fetch_message(msg.id)
-            #print('Found message', updated_message)
             for reaction in updated_message.reactions:
-                #print('Found reaction', reaction, ', count = ',
-                #reaction.count)
-                #print(str(reaction.emoji))
                 if str(reaction.emoji) == '<:gallery:791402385436180500>':
-                    #print('Found stars')
                     cnt = reaction.count
 
-            #print(cnt, 'people starred')
-            if cnt > 0:
-                #print(msg.author, msg.content)
+            if cnt > 1:
                 embedVar = discord.Embed(title = str(msg.author), 
                    description = str(msg.content),
                    color = discord.Color.blue(),
@@ -153,8 +183,12 @@ async def send_to_gallery():
                 
                 await channel.send(embed=embedVar)
                 await updated_message.clear_reaction(gallery)
-        #print('Messages sent')
         messages.clear()
         await asyncio.sleep(120) # task runs every x seconds
-client.run(' ')
+async def welcome():
+    welcome_channel = client.get_channel(791124215561715714)
+
+    await welcome_channel.send('Welcome to Lockout!\n:pray: :cow:')
+
+client.run('')
 

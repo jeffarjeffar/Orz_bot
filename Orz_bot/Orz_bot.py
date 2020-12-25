@@ -19,9 +19,9 @@ def is_admin(person):
 
 @client.event
 async def on_ready():
-    await send_to_gallery()
     print('Bot is ready.')
     await client.change_presence(activity=discord.Game(name='Tmw orz'))
+    await send_to_gallery()
 
 
 messages = []
@@ -32,6 +32,7 @@ async def on_message(message):
 
     #gallery = client.get_emoji(791402385436180500)
     #await message.add_reaction(gallery)
+    #print('read message', message.content)
 
     if message.author == client.user:
         return
@@ -53,8 +54,42 @@ async def on_message(message):
 
     if message.content.startswith(prefix):
         # commands
-        if message.content.startswith(prefix + 'ping'):
+        command = message.content[1:].split(' ')
+        if command[0] == 'ping':
             await message.channel.send('Pong!')
+        if command[0] == 'mute':
+            #print(message.author)
+            if not is_admin(str(message.author)):
+                await message.channel.send('You do not have permission to mute this user')
+                return
+
+            if len(command) != 3:
+                await message.channel.send('Incorrect number of arguments given')
+                return
+            
+            user_id = int(command[1][3:-1])
+            #print(user_id)
+            #print(message.guild)
+            person = await message.guild.fetch_member(user_id)
+            person_user = client.get_user(user_id) # person, but with type User
+            #print(person)
+            await mute(person, int(command[2]), message.guild, person_user.mention, message.channel)
+
+
+async def mute(person, time, server, mention, channel):
+    mute_msg = mention + ' has been muted for ' + str(time) + ' seconds'
+    unmute_msg = mention + ' has been unmuted'
+    error_msg = 'Unable to mute ' + mention
+    for r in server.roles:
+        #print('Found role', r.name)
+        if r.name == 'Muted':
+            await person.add_roles(r)
+            await channel.send(mute_msg)
+            await asyncio.sleep(time)
+            await person.remove_roles(r)
+            await channel.send(unmute_msg)
+            return
+    await channel.send(error_msg)
 
 async def send_to_gallery():
     #print('Watching for stars')
@@ -79,8 +114,7 @@ async def send_to_gallery():
             #print(cnt, 'people starred')
             if cnt > 0:
                 #print(msg.author, msg.content)
-                embedVar = discord.Embed(
-                   title = str(msg.author), 
+                embedVar = discord.Embed(title = str(msg.author), 
                    description = str(msg.content),
                    color = discord.Color.blue(),
                    url = msg.jump_url,
@@ -90,7 +124,6 @@ async def send_to_gallery():
                 await updated_message.clear_reaction(gallery)
         #print('Messages sent')
         messages.clear()
-        await asyncio.sleep(30) # task runs every x seconds
-
-client.run('insert super secret orz token here')
+        await asyncio.sleep(120) # task runs every x seconds
+client.run('')
 

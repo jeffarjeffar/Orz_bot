@@ -16,6 +16,12 @@ def is_admin(person):
             return True
     return False
 
+def is_mooderator(person):
+    for role in person.roles:
+        if role.name == 'Mooderator':
+            return True
+    return False
+
 perms = {}
 
 def pull_perms():
@@ -40,16 +46,66 @@ def getperm(id):
 @client.event
 async def on_ready():
     pull_perms()
+    pull_penalty()
     print('Bot is ready.')
     await client.change_presence(activity=discord.Game(name='Tmw orz'))
+    await spam_detect()
+    await cow_worship()
     await send_to_gallery()
 
 
 messages = []
+counts = {}
+penalty = {}
+censored = []
+censor_words = ['wtf']
+replace = ['wtmoo']
+
+def pull_penalty():
+    F = open('penalty.txt')
+    f_penalty = F.readlines()
+
+    for p in f_penalty:
+        p2 = p.split('-----')
+        penalty[int(p2[0])] = int(p2[1])
+
+def push_penalty():
+    F = open('penalty.txt', 'w')
+    for k in penalty.keys():
+        F.write(f'{k}-----{penalty[k]}\n')
+
+def get_penalty(user):
+    if user in penalty.keys():
+        penalty[user] = min(86400, penalty[user] * 2)
+        return penalty[user]
+    penalty[user] = 20
+    push_penalty()
+    return 10
 
 @client.event
 async def on_message(message):
     messages.append(message)
+    if not message.author.bot:
+        #print('updating counts')
+        if not message.author.id in counts.keys():
+            counts[message.author.id] = 0
+        counts[message.author.id] = counts[message.author.id] + 1
+        #print(f'count of user {message.author.id} is now
+        #{counts[message.author.id]}')
+
+    print(message.author.id, censored)
+    if message.author.id in censored:
+        censored_message = message.content
+        for w in range(len(censor_words)):
+            for i in range(len(censored_message) - len(censor_words[w]) + 1):
+                print(i, censored_message[i:i+len(censor_words[w])])
+                if censored_message[i:i + len(censor_words[w])] == censor_words[w]:
+                    temp = censored_message[0:i]
+                    temp += replace[w]
+                    temp += censored_message[i + len(censor_words[w]):-1]
+                    censored_message = temp
+        if censored_message != message.content:
+            await message.edit(content = censored_message)
 
     if str(message.channel) == 'welcome' and message.content == '':
         await welcome()
@@ -102,9 +158,9 @@ async def on_message(message):
             await unmute(user_id, message.guild, message.channel)
         if command[0] == 'help':
             embed = discord.Embed(title="Help")
-            embed.add_field(name="Commands", value='"mute [@user] [time]": mutes user for [time] seconds\n' + '"unmute [@user]": unmutes user\n' + '"setperms [@user] [permission]": Changes the permissions integer for a user\n' + '"viewperms": lists users and their permissions integers', inline=False)
+            embed.add_field(name="Commands", value='"mute [@user] [time]": mutes user for [time] seconds\n' + '"unmute [@user]": unmutes user\n' + '"setperms [@user] [permission]": Changes the permissions integer for a user\n' + '"viewperms": lists users and their permissions integers\n' + '"ding [@user] [points]": Takes away participation points from user\n' + '"censor [@user]": censors user\'s messages\n' + '"uncensor [@user]": uncensors user\'s messages', inline=False)
             embed.add_field(name="Help", value= '"help": Shows this message', inline=False)
-            embed.add_field(name="Misc", value='"ping": Sends "Pong!"', inline=False)
+            embed.add_field(name="Misc", value='"ping": Sends "Pong!"\n' + '"spam [times] [message]": sends message [time] number of times', inline=False)
             embed.add_field(name="Gallery", value='React with :gallery: to send a message to the gallery. It will be sent to the gallery if there are at least 2 reactions'
                             , inline=False)
             await message.channel.send(embed=embed)
@@ -122,6 +178,58 @@ async def on_message(message):
             for k in perms.keys():
                 res += f'<@{k}>: {perms[k]}\n'
             await message.channel.send(res)
+        if command[0] == 'spam':
+            if getperm(message.author.id) < 69:
+                await message.channel.send('You do not have permission to spam')
+                return
+            if len(command) <= 2:
+                await message.channel.send('Incorrect number of arguments given')
+                return
+
+            msg = ''
+            for i in range(2, len(command)):
+                msg += command[i] + ' '
+            for i in range(int(command[1])):
+                await message.channel.send(msg)
+        if command[0] == 'ding':
+            if not is_mooderator(message.author):
+                await message.channel.send('You do not have permission to ding people')
+                return
+            if len(command) != 3:
+                await message.channel.send('Incorrect number of arguments given')
+                return
+            
+            user_id = int(command[1][3:-1])
+
+            penalty[user_id] += int(command[2])
+            await message.channel.send(f'<@{user_id}> has been dinged')
+        if command[0] == 'censor':
+            if not is_mooderator(message.author):
+                await message.channel.send('You do not have permission to censor people')
+                return
+            if len(command) != 2:
+                await message.channel.send('Incorrect number of arguments given')
+                return
+            user_id = int(command[1][3:-1])
+            if user_id in censored:
+                await message.channel.send(f'<@{user_id}> is already censored')
+            else:
+                censored.append(user_id)
+                await message.channel.send(f'<@{user_id}> has been censored')
+        if command[0] == 'uncensor':
+            if not is_mooderator(message.author):
+                await message.channel.send('You do not have permission to uncensor people')
+                return
+            if len(command) != 2:
+                await message.channel.send('Incorrect number of arguments given')
+                return
+            user_id = int(command[1][3:-1])
+            if not user_id in censored:
+                await message.channel.send(f'<@{user_id}> is not censored')
+            else:
+                censored.remove(user_id)
+                await message.channel.send(f'<@{user_id}> has been uncensored')
+
 
 async def mute(id, time, server, channel):
     person = await server.fetch_member(id)
@@ -185,6 +293,17 @@ async def send_to_gallery():
                 await updated_message.clear_reaction(gallery)
         messages.clear()
         await asyncio.sleep(120) # task runs every x seconds
+async def spam_detect():
+    general = client.get_channel(791145461829992508)
+    while True:
+        await asyncio.sleep(10)
+        for k in counts.keys():
+            #print(f'Found user {k} with {counts[k]} messages sent')
+            if counts[k] >= 10:
+                await general.send(f'Dang nang it <@{k}>.\nOrz bot has detected that you have been spamming.\nI\'m going to have to ding you for that')
+                await mute(k, get_penalty(k), general.guild, general)
+            counts[k] = 0
+
 async def welcome():
     welcome_channel = client.get_channel(791124215561715714)
 

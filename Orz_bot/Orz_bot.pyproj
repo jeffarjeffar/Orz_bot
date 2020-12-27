@@ -21,7 +21,37 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="cogs\Bot.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cogs\Misc.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cogs\Mute.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cogs\Mute_util.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cogs\orz.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cogs\Perms.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cogs\Spam_detect.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cogs\starboard.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cogs\Utility.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Orz_bot.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="cogs\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

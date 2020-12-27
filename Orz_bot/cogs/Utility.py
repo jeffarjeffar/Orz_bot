@@ -67,4 +67,7 @@ def get_penalty(user):
 
 messages = []
 
+star_started = False
+spam_detected = False
+
 client = discord.Client()

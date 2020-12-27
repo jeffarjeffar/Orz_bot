@@ -35,7 +35,7 @@ class Orz(commands.Cog):
         
         messages.append(message)
 
-        if message.author.bot:
+        if message.author == self.client.user:
             return
 
         if not message.author.id in message_counts.keys():
@@ -56,5 +56,9 @@ class Orz(commands.Cog):
         if 'wtmoo' in message.content.lower():
             wtmoo = self.client.get_emoji(791368845172015104)
             await message.add_reaction(wtmoo)
+
+        if 'geniosity' in message.content.lower():
+            geniosity = self.client.get_emoji(792822692231118918)
+            await message.add_reaction(geniosity)
         
 

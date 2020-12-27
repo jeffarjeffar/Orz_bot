@@ -20,5 +20,7 @@ bot.add_cog(Misc(bot))
 bot.add_cog(starboard(bot))
 bot.add_cog(anti_spam(bot))
 
-bot.run('NzkxMzQwNzMwOTA3ODg1NjA4.X-NvfA.uFeS5stErQKEATzrjwEwNcB7UCk')
+TOKEN = input('Token: ')
+
+bot.run(TOKEN)
 

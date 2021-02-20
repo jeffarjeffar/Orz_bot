@@ -3,7 +3,6 @@ from discord.ext import commands
 import asyncio
 
 from cogs.Utility import *
-from cogs.Bot import *
 
 class Perms(commands.Cog):
 

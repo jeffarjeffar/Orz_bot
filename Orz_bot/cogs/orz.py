@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import asyncio
+import os
 
 from cogs.Utility import *
 
@@ -60,5 +61,11 @@ class Orz(commands.Cog):
         if 'geniosity' in message.content.lower():
             geniosity = self.client.get_emoji(792822692231118918)
             await message.add_reaction(geniosity)
-        
+    
+    @commands.Cog.listener()
+    async def on_member_join(member):
+        os.system('echo member_join')
+        for channel in member.guild.channels:
+            if channel.name.lower() == 'welcome':
+                await channel.send(f'Welcome <@{member.id}>! Go to #handle-identify to identify your handle and access the rest of the server.\nNote: if you are a newbie, you can only send messages to #gitgud until you git gud\n:pray: :cow:')
 

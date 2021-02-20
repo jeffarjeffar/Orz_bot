@@ -64,10 +64,3 @@ def get_penalty(user):
     penalty[user] = 20
     push_penalty()
     return 10
-
-messages = []
-
-star_started = False
-spam_detected = False
-
-client = discord.Client()

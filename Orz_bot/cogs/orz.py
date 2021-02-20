@@ -33,8 +33,6 @@ class Orz(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        
-        messages.append(message)
 
         if message.author == self.client.user:
             return
@@ -43,7 +41,7 @@ class Orz(commands.Cog):
             message_counts[message.author.id] = 0
         message_counts[message.author.id] = message_counts[message.author.id] + 1
 
-        if 'no u' in message.content.lower():
+        if 'no u' in message.content.lower() and not is_admin(str(message.author)):
             await message.channel.send('No u')
 
         if 'orz' in message.content.lower():
@@ -60,6 +58,10 @@ class Orz(commands.Cog):
 
         if 'geniosity' in message.content.lower():
             geniosity = self.client.get_emoji(792822692231118918)
+            await message.add_reaction(geniosity)
+            
+        if '69' in message.content.lower():
+            geniosity = self.client.get_emoji(798664261534613554)
             await message.add_reaction(geniosity)
     
     @commands.Cog.listener()

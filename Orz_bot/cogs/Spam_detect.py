@@ -15,7 +15,7 @@ class anti_spam(commands.Cog):
     async def spam_detect(self):
         general = self.client.get_channel(791145461829992508)
         for k in message_counts.keys():
-            if message_counts[k] >= 15:
+            if message_counts[k] >= 13:
                 await general.send(f'Dang nang it <@{k}>.\nOrz bot has detected that you have been spamming.\nI\'m going to have to ding you for that')
                 await mute(k, get_penalty(k), general.guild, general)
             message_counts[k] = 0

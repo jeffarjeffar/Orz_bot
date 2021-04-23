@@ -18,9 +18,9 @@ class Data:
         self.conn.commit()
 
     def get_curr(self):
-        if self.conn.closed:
-            print('Connection is closed. Restarting...')
-            self.conn = sqlite3.connect(self.db_file)
+        # if self.conn.closed:
+        #     print('Connection is closed. Restarting...')
+        #     self.conn = sqlite3.connect(self.db_file)
         return self.conn.cursor()
 
     def get_mutetime(self, person: int, guild: int):

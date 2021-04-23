@@ -55,3 +55,7 @@ class Mooderation(commands.Cog):
     async def wait_until_ready(self):
         print('Waiting for bot to get ready...')
         await self.client.wait_until_ready()
+
+
+def setup(bot):
+    bot.add_cog(Mooderation(bot))

@@ -9,7 +9,7 @@ from pathlib import Path
 
 from Orz_bot.constants import *
 
-bot = discord.Client(prefix=commands.when_mentioned_or('!'))
+bot = commands.Bot(command_prefix=commands.when_mentioned_or('!'))
 
 
 @bot.event
@@ -72,10 +72,14 @@ def setup():
 def main():
     setup()
     
-    cogs = [file.stem for file in Path('tle', 'cogs').glob('*.py')]
+    cogs = [file.stem for file in Path('Orz_bot', 'cogs').glob('*.py')]
     for extension in cogs:
-        bot.load_extension(f'tle.cogs.{extension}')
+        bot.load_extension(f'Orz_bot.cogs.{extension}')
     logging.info(f'Cogs loaded: {", ".join(bot.cogs)}')
     
     token = input('Token? ')
     bot.run(token)
+
+
+if __name__ == '__main__':
+    main()

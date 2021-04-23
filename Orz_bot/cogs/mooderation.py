@@ -1,34 +1,57 @@
 import discord
 from discord.ext import commands
+from discord.ext import tasks
 
 import time
+
+from Orz_bot.util import data
 
 
 class Mooderation(commands.Cog):
 
-	def __init__(self, client) -> None:
-		self.client = client
+    def __init__(self, client) -> None:
+        self.client = client
+        self.mute_check.start()
 
-	@commands.command()
-	async def mute(self, ctx, person: discord.Member, duration=''):
-		if len(duration) > 0:
-			if duration.endswith('h'):
-				multiplier = 3600
-			elif duration.endswith('m'):
-				multiplier = 60
-			elif duration.endswith('s'):
-				multiplier = 1
-			else:
-				await ctx.send('Please specify a unit of time (h, m, or s)')
-				return
+    @commands.command()
+    async def mute(self, ctx, person: discord.Member, duration=''):
+        if len(duration) > 0:
+            if duration.endswith('h'):
+                multiplier = 3600
+            elif duration.endswith('m'):
+                multiplier = 60
+            elif duration.endswith('s'):
+                multiplier = 1
+            else:
+                await ctx.send('Please specify a unit of time (h, m, or s)')
+                return
 
-			try:
-				duration = float(duration[:-1]) * multiplier
+            try:
+                duration = float(duration[:-1]) * multiplier
 
-				if duration <= 0:
-					await ctx.send('Please enter a positive real number')
-				endtime = time.time() + duration
-			except ValueError:
-				await ctx.send(f'Bruh what please enter a real number')
-		else:
-			await person.edit(mute=True)
+                if duration <= 0:
+                    await ctx.send('Please enter a positive real number')
+                endtime = time.time() + duration
+                data.data_manager.change_mutetime(person, endtime)
+                await person.edit(mute=True)
+            except ValueError:
+                await ctx.send(f'Bruh what please enter a real number')
+        else:
+            await person.edit(mute=True)
+
+        await ctx.send(f'{person} has been muted')
+
+    @tasks.loop(seconds=1)
+    async def mute_check(self):
+        mutelist = data.data_manager.mutelist()
+        for person in mutelist:
+            if person[2] <= time.time():
+                guild = await self.client.fetch_guild(person[1])
+                member = await guild.fetch_member(person[0])
+                await member.edit(mute=False)
+                data.data_manager.remove_mutetime(person[0], person[1])
+                
+    @mute_check.before_loop
+    async def wait_until_ready(self):
+        print('Waiting for bot to get ready...')
+        await self.client.wait_until_ready()

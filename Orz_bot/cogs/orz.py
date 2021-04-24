@@ -13,7 +13,6 @@ class Orz(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        print(message)
         powerful = ("mooderator" in [y.name.lower() for y in message.author.roles]
                     or "admin" in [y.name.lower() for y in message.author.roles]
                     or "orz bot" in [y.name.lower() for y in message.author.roles])
@@ -23,7 +22,7 @@ class Orz(commands.Cog):
 
     @commands.command()
     async def ping(self, ctx):
-        await ctx.send(f'Pong! Latency is {round(self.client.latency, 2)}ms')
+        await ctx.send(f'Pong! Latency is {round(1000 * self.client.latency, 2)}ms')
 
 
 def setup(bot):

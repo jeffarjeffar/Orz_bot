@@ -23,7 +23,7 @@ class Data:
         #     self.conn = sqlite3.connect(self.db_file)
         return self.conn.cursor()
 
-    def get_mutetime(self, person: int, guild: int):
+    def get_mutetime(self, person : int, guild : int):
         sql = f'SELECT * FROM mutelist WHERE id={person} and guild={guild}'
         curr = self.get_curr()
         curr.execute(sql)
@@ -39,13 +39,13 @@ class Data:
         rows = curr.fetchall()
         return rows
 
-    def remove_mutetime(self, person: int, guild: int):
+    def remove_mutetime(self, person : int, guild : int):
         sql = f'DELETE FROM mutelist WHERE id={person} and guild={guild}'
         curr = self.get_curr()
         curr.execute(sql)
         self.conn.commit()
 
-    def change_mutetime(self, person: int, guild: int, mutetime: float):
+    def change_mutetime(self, person : int, guild : int, mutetime: float):
         sql = f'INSERT INTO mutelist VALUES ({person}, {guild}, {mutetime})'
 
         curr = self.get_curr()

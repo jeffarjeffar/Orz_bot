@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 
+from Orz_bot.constants import *
+
 
 class Orz(commands.Cog):
 
@@ -20,9 +22,35 @@ class Orz(commands.Cog):
         if not powerful and 'no u' in message.content.lower():
             await message.ctx.send('No u.')
 
+        if 'orz' in message.content.lower():
+            orz = self.client.get_emoji(ORZ_ID)
+            await message.add_reaction(orz)
+
+        if 'think' in message.content.lower() or 'thonk' in message.content.lower():
+            thonk = self.client.get_emoji(THONK_ID)
+            await message.add_reaction(thonk)
+
+        if 'wtmoo' in message.content.lower():
+            wtmoo = self.client.get_emoji(WTMOO_ID)
+            await message.add_reaction(wtmoo)
+
+        if 'geniosity' in message.content.lower():
+            geniosity = self.client.get_emoji(GENIOSITY_ID)
+            await message.add_reaction(geniosity)
+
+        if '69' in message.content.lower():
+            geniosity = self.client.get_emoji(NOICE_ID)
+            await message.add_reaction(geniosity)
+
     @commands.command()
     async def ping(self, ctx):
         await ctx.send(f'Pong! Latency is {round(1000 * self.client.latency, 2)}ms')
+
+    @commands.command()
+    @commands.has_any_role('Mooderator', 'Admin', 'Moderator')
+    async def spam(self, ctx, times: int, *, msg):
+        for _ in range(times):
+            await ctx.send(msg)
 
 
 def setup(bot):

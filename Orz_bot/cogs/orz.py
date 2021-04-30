@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 
+import random
+
 from Orz_bot.constants import *
 
 
@@ -13,11 +15,18 @@ class Orz(commands.Cog):
     async def on_ready(self):
         print('Bot is ready')
 
+    @commands.command()
+    async def ghost(self, ctx):
+        pass
+
     @commands.Cog.listener()
     async def on_message(self, message):
         powerful = ("mooderator" in [y.name.lower() for y in message.author.roles]
                     or "admin" in [y.name.lower() for y in message.author.roles]
                     or "orz bot" in [y.name.lower() for y in message.author.roles])
+        
+        if powerful and message.content.startswith('!ghost'):
+            await message.delete()
 
         if not powerful and 'no u' in message.content.lower():
             await message.ctx.send('No u.')
@@ -51,6 +60,58 @@ class Orz(commands.Cog):
     async def spam(self, ctx, times: int, *, msg):
         for _ in range(times):
             await ctx.send(msg)
+            
+    @commands.command()
+    async def echo(self, ctx, *, msg):
+        await ctx.send(msg)
+
+    @commands.command(name='8ball')
+    async def eightball(self, ctx, *, message):
+        parsed = message.lower()
+        e = discord.Embed(title=ctx.author.name + ' asked:', description=message,
+                color=0x9999ff)
+
+        reponse = ''
+
+        # rigged
+        if 'fishy' in parsed and ('smart' in parsed or 'geniosity' in parsed):
+            response = 'Fishy is geniosity.'
+        elif 'apple method' in parsed and ('smart' in parsed or 'geniosity' in parsed):
+            response = 'Apple Method is super geniosity.'
+        elif 'larry' in parsed and ('smart' in parsed or 'geniosity' in parsed):
+            response = f'Larry is super geniosity <:orz:{ORZ_ID}>'
+        else:
+            response = self.get_random_message()
+
+        e.add_field(name='Answer:', value=response)
+        await ctx.send(embed=e)
+
+
+    def get_random_message():
+        results = [
+            'It is certain.',
+            'It is decidedly so.',
+            'Without a doubt.',
+            'Yes - definitely.',
+            'You may rely on it.',
+            'As I see it, yes.',
+            'Most likely.',
+            'Outlook good.',
+            'Yes.',
+            'Signs point to yes.',
+            'Reply hazy, try again.',
+            'Ask again later.',
+            'Better not tell you now.',
+            'Cannot predict now.',
+            'Concentrate and ask again.',
+            'Don\'t count on it.',
+            'My reply is no.',
+            'My sources say no.',
+            'Outlook not so good.',
+            'Very doubtful.'
+        ]
+
+        return random.choice(results)
 
 
 def setup(bot):

@@ -29,7 +29,7 @@ class Orz(commands.Cog):
             await message.delete()
 
         if not powerful and 'no u' in message.content.lower():
-            await message.ctx.send('No u.')
+            await message.channel.send('No u.')
 
         if 'orz' in message.content.lower():
             orz = self.client.get_emoji(ORZ_ID)
@@ -64,6 +64,7 @@ class Orz(commands.Cog):
     @commands.command()
     async def echo(self, ctx, *, msg):
         await ctx.send(msg)
+        await ctx.message.delete()
 
     @commands.command(name='8ball')
     async def eightball(self, ctx, *, message):

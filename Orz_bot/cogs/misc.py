@@ -82,14 +82,22 @@ class Misc(commands.Cog):
             await ctx.send(f'Compile error:\n```\n{stderr}```')
             return
 
-        code, stdout, stderr = await util.time('.\\' + os.path.join(TEMP_DIR, "a.exe"), 10)
+        code, stdout, stderr = await util.time('./' + os.path.join(TEMP_DIR, "a"), 10)
         if code is None:
             await ctx.send('Time limit exceeded.')
-        elif code == 0:
-            await ctx.send(f'```\n{stdout}```')
         else:
-            await ctx.send(f'Runtime Error\n```\n{stdout}```')
-            await ctx.send(f'STDERR:\n```\n{stderr}```')
-        
+            msg = None
+            if code == 0:
+                msg = f'```\n{stdout}```'
+            else:
+                msg = f'```\n{stdout}```\nRUNTIME ERROR\n```\n{stderr}```'
+                
+            try:
+                await ctx.send(msg)
+            except Exception as e:
+                with open(os.path.join(TEMP_DIR, 'message.txt'), 'w') as file:
+                    file.write(msg)
+                await ctx.send(file=discord.File(os.path.join(TEMP_DIR, 'message.txt')))
+
 def setup(bot):
     bot.add_cog(Misc(bot))

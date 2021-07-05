@@ -87,7 +87,7 @@ class Orz(commands.Cog):
         await ctx.send(embed=e)
 
 
-    def get_random_message():
+    def get_random_message(self):
         results = [
             'It is certain.',
             'It is decidedly so.',

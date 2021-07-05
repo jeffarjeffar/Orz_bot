@@ -13,9 +13,19 @@ class Mooderation(commands.Cog):
         self.client = client
         self.mute_check.start()
 
+    async def make_muted_role(self, guild):
+        check = discord.utils.get(guild.roles, name='Muted')
+        if check is not None:
+            return
+        muted = await guild.create_role(name='Muted')
+        for channel in guild.channels:
+            if type(channel) == discord.TextChannel:
+                await channel.set_permissions(muted, send_messages=False)
+
     @commands.command()
-    @commands.has_any_role('Mooderator', 'Admin', 'Moderator')
+    @commands.has_permissions(manage_roles=True)
     async def mute(self, ctx, person: discord.Member, duration=''):
+        await self.make_muted_role(ctx.guild)
         if len(duration) > 0:
             if duration.endswith('h'):
                 multiplier = 3600
@@ -47,7 +57,7 @@ class Mooderation(commands.Cog):
         await ctx.send(f'{person} has been muted')
 
     @commands.command()
-    @commands.has_any_role('Mooderator', 'Admin', 'Moderator')
+    @commands.has_permissions(manage_roles=True)
     async def unmute(self, ctx, person: discord.Member):
         muted = discord.utils.get(ctx.guild.roles, name="Muted")
         if not muted in person.roles:

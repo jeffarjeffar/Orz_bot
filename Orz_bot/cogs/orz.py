@@ -1,10 +1,11 @@
 import discord
 from discord.ext import commands
+import discord_components as components
 
 import random
 
 from Orz_bot.constants import *
-
+from util import tex
 
 class Orz(commands.Cog):
 
@@ -30,6 +31,11 @@ class Orz(commands.Cog):
 
         if not powerful and 'no u' in message.content.lower():
             await message.channel.send('No u.')
+
+        if '$' in message.content:
+            id = tex.send_tex(message)
+            interaction = await self.client.wait_for("button_click", check = lambda i: i.component.id == id)
+            await interaction.respond(type=components.InteractionType.UpdateMessage, content = "Button clicked!")
 
         if 'orz' in message.content.lower():
             orz = self.client.get_emoji(ORZ_ID)

@@ -79,7 +79,7 @@ def main():
         bot.load_extension(f'Orz_bot.cogs.{extension}')
     logging.info(f'Cogs loaded: {", ".join(bot.cogs)}')
     
-    token = input('Token? ')
+    token = os.getenv('ORZ_TOKEN')
     bot.run(token)
 
 

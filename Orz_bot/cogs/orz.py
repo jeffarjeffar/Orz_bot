@@ -41,7 +41,7 @@ class Orz(commands.Cog):
                 try:
                     reaction, user = await self.client.wait_for('reaction_add', timeout=696.9, check=check)
                 except asyncio.TimeoutError:
-                    await message.clear_reactions()
+                    await texed.clear_reactions()
                 else:
                     await texed.delete()
 
